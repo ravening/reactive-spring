@@ -116,7 +116,11 @@
                                 <useSpringBoot3>true</useSpringBoot3>
                                 <java17>true</java17>
                                 <serializationLibrary>jackson</serializationLibrary>
+                                <interfaceOnly>true</interfaceOnly>
                             </configOptions>
+                            <addCompileSourceRoot>true</addCompileSourceRoot>
+                            <apiPackage>com.rakesh.reactivespring.customer.api</apiPackage>
+                            <modelPackage>com.rakesh.reactivespring.customer.model</modelPackage>
                         </configuration>
                     </execution>
                 </executions>
