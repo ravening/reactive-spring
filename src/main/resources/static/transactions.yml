@@ -1,0 +1,355 @@
+openapi: 3.0.3
+info:
+  title:  Payment Transaction
+  description: This API provides functionality related to retrieve transactions to the consumer
+  version: 1.0.0
+  license:
+    name: Rakesh venkatesh
+    url: 'http://www.google.com'
+servers:
+  - url: '/txs'
+paths:
+  '/transactions':
+    get:
+      summary: Retrieve a list of transactions for approval
+      operationId: getTransactions
+      tags:
+        - Transactions
+      parameters:
+        - $ref: '#/components/parameters/smSession'
+        - $ref: '#/components/parameters/traceId'
+      responses:
+        200:
+          description: Successfully fetched a transaction list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingTransactions'
+        400:
+          description: Validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+        401:
+          description: Expired session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+        403:
+          description: No access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+
+  '/transactions/latest':
+    get:
+      summary: Retrieve a latest transaction for approval
+      operationId: getLatestTransaction
+      tags:
+        - Transactions
+      parameters:
+        - $ref: '#/components/parameters/smSession'
+        - $ref: '#/components/parameters/traceId'
+      responses:
+        200:
+          description: Successfully fetched a transaction list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OptionalPendingTransaction'
+        401:
+          description: Expired session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+        403:
+          description: No access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+
+  '/transactions/{transactionId}':
+    get:
+      summary: Retrieve a transaction by its ID for approval
+      operationId: getTransactionById
+      tags:
+        - Transactions
+      parameters:
+        - in: path
+          name: transactionId
+          schema:
+            type: string
+          required: true
+          description: Universally Unique transaction identifier assigned by the ACS to identify a single transaction
+        - $ref: '#/components/parameters/smSession'
+        - $ref: '#/components/parameters/traceId'
+      responses:
+        200:
+          description: Successfully fetched a transaction list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingTransaction'
+        401:
+          description: Expired session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+        404:
+          description: Transaction doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+        403:
+          description: No access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+
+  '/transactions/{transactionId}/authorization':
+    post:
+      summary: Authorize the transaction
+      operationId: authorizeTransaction
+      tags:
+        - Transactions
+      parameters:
+        - in: path
+          name: transactionId
+          schema:
+            type: string
+          required: true
+          description: Universally Unique transaction identifier assigned by the ACS to identify a single transaction
+        - $ref: '#/components/parameters/smSession'
+        - $ref: '#/components/parameters/traceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionAuthorizationRequest'
+      responses:
+        200:
+          description: Successfully authorized 3DS transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizeTransactionResponse'
+        400:
+          description: Validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+        401:
+          description: Expired session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+        403:
+          description: No access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+        404:
+          description: Transaction doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+        422:
+          description: 3DS transaction expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+
+        500:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+
+components:
+  parameters:
+    smSession:
+      name: SMSession
+      in: cookie
+      schema:
+        type: string
+      required: true
+    traceId:
+      name: Trace-Id
+      in: header
+      description: An optional header to provide the Trace ID when it is generated on a consumer code.
+      required: false
+      schema:
+        type: string
+        maxLength: 50
+        pattern: '^[\w-]+$'
+
+  schemas:
+    AuthorizeTransactionResponse:
+      required:
+        - redirectRequired
+      properties:
+        redirectRequired:
+          type: boolean
+          description: Indicates if user needs to be redirected the merchant url.
+        redirectUrl:
+          type: string
+          description: The url of the merchant app where customer should be redirected after authorisation flow.
+          example: 'https://merchant.xyz.com/checkout/0125619b-75eb-4c26-a690-99aaaff1a7e1'
+
+    PendingTransactions:
+      type: object
+      required:
+        - transactions
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PendingTransaction'
+
+    OptionalPendingTransaction:
+      type: object
+      properties:
+        merchantName:
+          maxLength: 40
+          minLength: 1
+          type: string
+          description: Name of the merchant
+          example: CoffeeHouse demo shop
+        purchaseAmount:
+          maxLength: 48
+          minLength: 1
+          pattern: '[0-9]{1,15}\.[0-9]{1,4}'
+          type: string
+          description: Purchase amount in the pre-formatted format.
+          example: '35.05'
+        purchaseCurrencyCode:
+          maxLength: 3
+          minLength: 3
+          pattern: '[A-Za-z]'
+          type: string
+          description: Currency (ISO three letter currency code) in which purchase amount is expressed.
+          example: 'EUR'
+        purchaseDateTime:
+          type: string
+          format: date-time
+          description: Date and time of the purchase, expressed in YYYY-MM-DDThh:mm:ssZ format.
+          example: '2018-10-10T10:00:00Z'
+        PANSuffix:
+          maxLength: 8
+          minLength: 4
+          pattern: '[0-9]{4}'
+          type: string
+          description: The last few digits (typically four) of the Primary account number(PAN) used for 3DS transaction
+          example: '0234'
+        transactionId:
+          minLength: 36
+          maxLength: 36
+          type: string
+          description: Universally Unique transaction identifier assigned by the ACS to identify a single transaction.
+          example: 'f92eeb27-b11f-42ad-99a6-0237bb8dd004'
+
+    PendingTransaction:
+      allOf:
+        - $ref: '#/components/schemas/OptionalPendingTransaction'
+        - type: object
+          required:
+            - transactionId
+            - merchantName
+            - purchaseAmount
+            - purchaseCurrencyCode
+            - purchaseDateTime
+            - PANSuffix
+
+    TransactionAuthorizationRequest:
+      type: object
+      description: Request for authorizing (approving/rejecting) a transaction
+      required:
+        - transactionStatus
+      properties:
+        transactionStatus:
+          type: string
+          nullable: false
+          enum:
+            - APPROVED
+            - CANCELLED
+      example:
+        transactionStatus: APPROVED
+
+    ErrorsResponse:
+      type: object
+      description: Wrapper for data in case any error happens
+      properties:
+        errors:
+          type: array
+          description: list of error messages
+          items:
+            $ref: '#/components/schemas/Error'
+    Error:
+      type: object
+      title: Error
+      description: A message object which describes a single problem
+      required:
+        - code
+        - traceId
+      properties:
+        code:
+          description: The message key which is used to lookup the message in the content  management system
+          type: string
+        message:
+          description: Description of the error
+          type: string
+        traceId:
+          description: The Trace ID header value if was provided in the request or an autogenerated one
+          type: string
+        status:
+          description: The response staus code.
+          type: integer
+          format: int32
+        params:
+          description: Dynamic values in addition to the error code used to create a full message.
+          type: array
+          items:
+            type: string
+
+
+  securitySchemes:
+    SMSessionAuth:
+      type: apiKey
+      in: cookie
+      name: SMSession
+
+security:
+  - SMSessionAuth: [ ]
