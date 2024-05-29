@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 @RestController
 public class CustomerController  implements CustomerApi {
@@ -16,18 +18,18 @@ public class CustomerController  implements CustomerApi {
     Map<Long, CustomerFullData> customerMap = new HashMap<>();
 
     @Override
-    public ResponseEntity<CustomerFullData> createCustomer(Customer customer) {
+    public Mono<ResponseEntity<CustomerFullData>> createCustomer(Mono<Customer> customer, ServerWebExchange exchange) {
         CustomerFullData customerFullData = new CustomerFullData();
-        customerFullData.setFirstName(customer.getFirstName());
-        customerFullData.setLastName(customer.getLastName());
+        customerFullData.setFirstName(customer.map(Customer::getFirstName).block());
+        customerFullData.setLastName(customer.map(Customer::getLastName).block());
         customerFullData.setCustomerId((long) counter.incrementAndGet());
         customerMap.put((long) counter.get(), customerFullData);
 
-        return ResponseEntity.ok(customerFullData);
+        return Mono.just(ResponseEntity.ok(customerFullData));
     }
 
     @Override
-    public ResponseEntity<CustomerFullData> getCustomer(Long customerId) {
-        return ResponseEntity.ok(customerMap.get(customerId));
+    public Mono<ResponseEntity<CustomerFullData>> getCustomer(Long customerId, ServerWebExchange exchange) {
+        return Mono.just(ResponseEntity.ok(customerMap.get(customerId)));
     }
 }
