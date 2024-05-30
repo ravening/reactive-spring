@@ -14,12 +14,13 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AstroService {
 
-    private final RestTemplate template;
+//    private final RestTemplate template;
     private final WebClient client;
 
-    @Autowired
-    public AstroService(RestTemplateBuilder builder) {
-        this.template = builder.build();
+//    @Autowired
+    public AstroService() {
+//    public AstroService(RestTemplateBuilder builder) {
+//        this.template = builder.build();
         this.client = WebClient.create("http://api.open-notify.org");
     }
 
@@ -33,10 +34,12 @@ public class AstroService {
     }
 
     public String getPeopleInSpace() {
-        return template.getForObject("http://api.open-notify.org/astros.json", String.class);
+        return "Neil armstrong";
+//        return template.getForObject("http://api.open-notify.org/astros.json", String.class);
     }
 
     public AstroResponse getAstroResponseSync() {
-        return template.getForObject("http://api.open-notify.org/astros.json", AstroResponse.class);
+        return getAstroResponseAsync().block();
+//        return template.getForObject("http://api.open-notify.org/astros.json", AstroResponse.class);
     }
 }
