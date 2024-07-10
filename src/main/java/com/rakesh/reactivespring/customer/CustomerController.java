@@ -20,8 +20,8 @@ public class CustomerController  implements CustomerApi {
     @Override
     public Mono<ResponseEntity<CustomerFullData>> createCustomer(Mono<Customer> customer, ServerWebExchange exchange) {
         CustomerFullData customerFullData = new CustomerFullData();
-        customerFullData.setFirstName(customer.map(Customer::getFirstName).block());
-        customerFullData.setLastName(customer.map(Customer::getLastName).block());
+        customerFullData.setFirstName(String.valueOf(customer.subscribe(Customer::getFirstName)));
+        customerFullData.setLastName(String.valueOf(customer.map(Customer::getLastName)));
         customerFullData.setCustomerId((long) counter.incrementAndGet());
         customerMap.put((long) counter.get(), customerFullData);
 

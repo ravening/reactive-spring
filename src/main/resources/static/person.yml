@@ -62,3 +62,7 @@ components:
         birthDate:
           type: string
           format: date
+
+    Person:
+      allOf:
+        - $ref: '#/components/schemas/PersonDTO'

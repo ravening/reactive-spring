@@ -18,6 +18,8 @@
         <openapi-generator.version>7.4.0</openapi-generator.version>
         <jackson-databind-nullable.version>0.2.6</jackson-databind-nullable.version>
         <swagger-v3.version>2.2.18</swagger-v3.version>
+        <map-struct.version>1.5.5.Final</map-struct.version>
+        <springdoc-openapi.version>2.6.0</springdoc-openapi.version>
     </properties>
     <dependencies>
 <!--        <dependency>-->
@@ -29,6 +31,11 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${map-struct.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -76,6 +83,11 @@
             <version>2.3.0</version>
         </dependency>
         <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+            <version>${springdoc-openapi.version}</version>
+        </dependency>
+        <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
             <version>3.1.0-M1</version>
@@ -84,10 +96,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-security</artifactId>-->
+<!--        </dependency>-->
 
         <!-- https://mvnrepository.com/artifact/com.auth0/java-jwt -->
         <dependency>
@@ -118,6 +130,30 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${map-struct.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                    <showWarnings>true</showWarnings>
+                    <compilerArgs>
+                        <arg>-Amapstruct.suppressGeneratorTimestamp=true</arg>
+                        <arg>-Amapstruct.defaultComponentModel=spring</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -197,8 +233,9 @@
                             <skipValidateSpec>true</skipValidateSpec>
                             <inputSpec>${project.basedir}/src/main/resources/static/person.yml</inputSpec>
                             <generatorName>spring</generatorName>
-                            <generateSupportingFiles>false</generateSupportingFiles>
+<!--                            <generateSupportingFiles>false</generateSupportingFiles>-->
                             <configOptions>
+                                <java17>true</java17>
                                 <reactive>true</reactive>
                                 <openApiNullable>true</openApiNullable>
                                 <interfaceOnly>true</interfaceOnly>
@@ -208,6 +245,7 @@
                                 <apiPackage>${project.groupId}.reactivespring.person.api</apiPackage>
                                 <modelPackage>${project.groupId}.reactivespring.person.model</modelPackage>
                                 <useResponseEntity>false</useResponseEntity>
+                                <serializationLibrary>jackson</serializationLibrary>
                             </configOptions>
                         </configuration>
                     </execution>
